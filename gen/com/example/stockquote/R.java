@@ -37,9 +37,9 @@ public final class R {
         public static final int enterSymbolTextView=0x7f090002;
         public static final int quoteFromWebButton=0x7f09000c;
         public static final int stockQuoteButton=0x7f09000b;
-        public static final int stockScrollView=0x7f090008;
         public static final int stockSymbolEditText=0x7f090003;
         public static final int stockSymbolTextView=0x7f090006;
+        public static final int stockTableScrollView=0x7f090008;
         public static final int tableRow1=0x7f090001;
         public static final int tableRow2=0x7f090005;
         public static final int tableRow3=0x7f090007;
