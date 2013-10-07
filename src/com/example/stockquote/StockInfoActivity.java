@@ -2,8 +2,11 @@ package com.example.stockquote;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -11,10 +14,17 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -96,21 +106,114 @@ public class StockInfoActivity extends Activity{
 		@Override
 		protected String doInBackground(String... args) {
 			
+			try {
+				
+				XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+				
+				factory.setNamespaceAware(true);
+				
+				XmlPullParser parser = factory.newPullParser();
+				
+				parser.setInput(new InputStreamReader(getUrlData(args[0])));
+				
+				beginDocument(parser, "query");
+				
+				int eventType = parser.getEventType();
+				
+				do {
+					
+					nextElement(parser);
+					
+					parser.next();
+					
+					eventType = parser.getEventType();
+					
+					if(eventType == XmlPullParser.TEXT) {
+						
+						String valueFromXML = parser.getText();
+						
+						xmlPullParserArray[parserArrayIncrement++][1] = valueFromXML;
+						
+					}
+					
+				} while(eventType != XmlPullParser.END_DOCUMENT);
+				
+			} catch (ClientProtocolException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (XmlPullParserException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (URISyntaxException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			
+			finally {}
 			
 			return null;
 		}
 		
+		public InputStream getUrlData(String url) throws URISyntaxException, ClientProtocolException, IOException {
+			
+			DefaultHttpClient client = new DefaultHttpClient();
+			
+			HttpGet method = new HttpGet(new URI(url));
+			
+			HttpResponse res = client.execute(method);
+			
+			return res.getEntity().getContent();
+			
+		}
+		
+		public final void beginDocument(XmlPullParser parser, String firstElementName) throws XmlPullParserException, IOException {
+			
+			int type;
+			
+			while((type=parser.next()) != parser.START_TAG && type != parser.END_DOCUMENT) {
+				
+				;
+				
+			}
+			
+			if(type != parser.START_TAG) {
+				
+				throw new XmlPullParserException("No Start Tag Found");
+				
+			}
+			
+			if(!parser.getName().equals(firstElementName)) {
+				
+				throw new XmlPullParserException("Unexpected Start Tag Found " + parser.getName() + ", expected " + firstElementName);
+				
+			}
+			
+		}
+		
+		public final void nextElement(XmlPullParser parser) throws XmlPullParserException, IOException {
+			
+			int type;
+			
+			while((type = parser.next()) != parser.START_TAG && type != parser.END_DOCUMENT) {
+				
+				;
+			}
+			
+		}
+		
 		protected void onPostExecute(String result) {
 			
-			companyNameTextView.setText(name);
-			yearLowTextView.setText("Year Low: " + yearLow);
-			yearHighTextView.setText("Year High: " + yearHigh);
-			daysLowTextView.setText("Days Low: " + daysLow);
-			daysHighTextView.setText("Days High: " + daysHigh);
-			lastTradePriceOnlyTextView.setText("Last Price: " + lastTradePriceOnly);
-			changeTextView.setText("Change: " + change);
-			daysRangeTextView.setText("Daily Price Range: " + daysRange);
+			companyNameTextView.setText(xmlPullParserArray[9][1]);
+			yearLowTextView.setText("Year Low: " + xmlPullParserArray[4][1]);
+			yearHighTextView.setText("Year High: " + xmlPullParserArray[5][1]);
+			daysLowTextView.setText("Days Low: " + xmlPullParserArray[2][1]);
+			daysHighTextView.setText("Days High: " + xmlPullParserArray[3][1]);
+			lastTradePriceOnlyTextView.setText("Last Price: " + xmlPullParserArray[7][1]);
+			changeTextView.setText("Change: " + xmlPullParserArray[1][1]);
+			daysRangeTextView.setText("Daily Price Range: " + xmlPullParserArray[8][1]);
 			
 		}
 		
